@@ -1,6 +1,6 @@
 Metadata-Version: 1.2
 Name: password-policies
-Version: 0.1
+Version: 0.2
 Summary: A Django app to force password reset
 Home-page: UNKNOWN
 Author: Thasni Iqbal
