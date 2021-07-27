@@ -118,7 +118,7 @@ class PasswordChangeMiddleware(MiddlewareMixin):
         self.now = timezone.now().isoformat()
         self.url = reverse('password_change')
         if Utils.get_setting('PASSWORD_DURATION_SECONDS') and \
-                request.user.is_authenticated and not self._is_excluded_path(request.path):
+                request.user.is_authenticated and not request.user.is_superuser and not self._is_excluded_path(request.path):
             self.check = PasswordCheck(request.user)
             self.expiry_datetime = self.check.get_expiry_datetime()
             self._check_necessary(request)
