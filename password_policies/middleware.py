@@ -14,6 +14,7 @@ from .utils import Utils
 from .models import PasswordChangeRequired, PasswordHistory
 from .utils import PasswordCheck
 from .constants import *
+import dateutil.parser
 
 
 class PasswordChangeMiddleware(MiddlewareMixin):
@@ -31,7 +32,7 @@ class PasswordChangeMiddleware(MiddlewareMixin):
                 request.session[self.last] = newest.created.isoformat()
             else:
                 request.session[self.last] = request.user.date_joined.isoformat()
-        last_password_updated_time = datetime.datetime.fromisoformat(request.session[self.last])
+        last_password_updated_time = dateutil.parser.isoparse(request.session[self.last])
         if last_password_updated_time < self.expiry_datetime:
             request.session[self.required] = True
             if not PasswordChangeRequired.objects.filter(user=request.user).count():
@@ -51,7 +52,7 @@ class PasswordChangeMiddleware(MiddlewareMixin):
             if PasswordChangeRequired.objects.filter(user=request.user).count():
                 request.session[self.required] = True
                 return
-            checked_date = datetime.datetime.fromisoformat(request.session.get(self.checked, None))
+            checked_date = dateutil.parser.isoparse(request.session.get(self.checked, None))
             if checked_date < self.expiry_datetime:
                 try:
                     del request.session[self.last]
@@ -118,7 +119,7 @@ class PasswordChangeMiddleware(MiddlewareMixin):
         self.now = timezone.now().isoformat()
         self.url = reverse('password_change')
         if Utils.get_setting('PASSWORD_DURATION_SECONDS') and \
-                request.user.is_authenticated and not request.user.is_superuser and not self._is_excluded_path(request.path):
+                request.user.is_authenticated and not self._is_excluded_path(request.path) and not request.user.is_superuser:
             self.check = PasswordCheck(request.user)
             self.expiry_datetime = self.check.get_expiry_datetime()
             self._check_necessary(request)
